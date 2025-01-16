@@ -33,7 +33,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     // Timer untuk menunggu 3 detik sebelum pindah ke halaman utama
-    Timer(const Duration(seconds: 5), () {
+    Timer(const Duration(seconds: 10), () {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) =>  LoginPage()),
       );
@@ -48,22 +48,10 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo atau ikon aplikasi
-            const Icon(
-              Icons.flash_on,
-              size: 100.0,
-              color: Colors.white,
-            ),
+             Image.asset('assets/image/logoo.png', height: 200),
+            // Logo atau ikon aplikai
             const SizedBox(height: 20),
-            // Nama aplikasi
-            const Text(
-              'Splash Screen App',
-              style: TextStyle(
-                fontSize: 24.0,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+
             const SizedBox(height: 10),
             // Animasi loading
             const CircularProgressIndicator(

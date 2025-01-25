@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:rennatakasir/produk/index.dart';
+import 'package:rennatakasir/register.dart';
+import 'package:rennatakasir/splash.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:rennatakasir/pelanggan/index.dart';
+import 'package:rennatakasir/penjualan/index.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -37,6 +41,7 @@ class _HomepageState extends State<Homepage> {
               Tab(icon: Icon(Icons.inventory), text: 'Produk'),
               Tab(icon: Icon(Icons.people), text: 'Pelanggan'),
               Tab(icon: Icon(Icons.shopping_cart), text: 'Penjualan'),
+              Tab(icon: Icon(Icons.drafts), text: 'Detai Penjualan'), 
             ],
           ),
         ),
@@ -81,7 +86,10 @@ class _HomepageState extends State<Homepage> {
                 leading: const Icon(Icons.people),
                 title: const Text('Pelanggan'),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) =>  PelangganTab())
+                    );
                   // Logika navigasi atau aksi lainnya
                 },
               ),
@@ -89,7 +97,21 @@ class _HomepageState extends State<Homepage> {
                 leading: const Icon(Icons.shopping_cart),
                 title: const Text('Penjualan'),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const PenjualanTab())
+                    );
+                  // Logika navigasi atau aksi lainnya
+                },
+              ),
+               ListTile(
+                leading: const Icon(Icons.app_registration_rounded),
+                title: const Text('Register'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const RegisterPage())
+                    );
                   // Logika navigasi atau aksi lainnya
                 },
               ),
@@ -98,18 +120,21 @@ class _HomepageState extends State<Homepage> {
                 leading: const Icon(Icons.logout),
                 title: const Text('Logout'),
                 onTap: () {
-                  Navigator.pop(context);
-                  _logout(); // Panggil fungsi logout
+                  Navigator.push(
+                    context, 
+                   MaterialPageRoute(builder: (context) => const SplashScreen()),
+                  );// Panggil fungsi logout
                 },
               ),
             ],
           ),
         ),
-        body: const TabBarView(
+        body: TabBarView(
           children: [
-            Center(child: Text('Produk')),
+            ProdukTab(),
             PelangganTab(),
-            Center(child: Text('Penjualan')),
+            PenjualanTab(),
+            Center(child: Text('1'),)
           ],
         ),
       ),

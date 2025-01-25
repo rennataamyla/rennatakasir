@@ -1,273 +1,170 @@
 import 'package:flutter/material.dart';
+import 'package:rennatakasir/pelanggan/insert.dart';
+import 'package:rennatakasir/pelanggan/update.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+// Widget utama untuk menampilkan tab pelanggan
 class PelangganTab extends StatefulWidget {
-  const PelangganTab({Key? key}) : super(key: key);
-
   @override
-  State<PelangganTab> createState() => _PelangganTabState();
+  _PelangganTabState createState() => _PelangganTabState();
 }
 
 class _PelangganTabState extends State<PelangganTab> {
-  List<Map<String, dynamic>> pelanggan = [];
-  bool isLoading = true;
+  List<Map<String, dynamic>> Pelanggan = []; // Menyimpan data pelanggan
+  bool isLoading = true; // Status loading data
 
   @override
   void initState() {
     super.initState();
-    fetchPelanggan();
+    fetchPelanggan(); // Memanggil fungsi untuk mengambil data pelanggan saat inisialisasi
   }
 
-  // Fetch data pelanggan
+  // Fungsi untuk mengambil data pelanggan dari Supabase
   Future<void> fetchPelanggan() async {
     setState(() {
-      isLoading = true;
+      isLoading = true; // Mengatur status loading menjadi true
     });
     try {
       final response = await Supabase.instance.client.from('Pelanggan').select();
       setState(() {
-        pelanggan = List<Map<String, dynamic>>.from(response);
-        isLoading = false;
+        Pelanggan = List<Map<String, dynamic>>.from(response); // Menyimpan data ke dalam list
+        isLoading = false; // Status loading selesai
       });
     } catch (e) {
-      print('Error fetching pelanggan: $e');
-      _showErrorDialog('Gagal memuat data pelanggan.');
+      print('Error fetching pelanggan: $e'); // Log error jika ada masalah
       setState(() {
-        isLoading = false;
+        isLoading = false; // Tetap menonaktifkan status loading jika terjadi error
       });
     }
   }
 
-  // Tambahkan data pelanggan
-  Future<void> addPelanggan(String nama, String alamat, String telepon) async {
-    if (nama.isEmpty || alamat.isEmpty || telepon.isEmpty) {
-      _showErrorDialog('Semua field harus diisi!');
-      return;
-    }
-
-    try {
-      final response = await Supabase.instance.client.from('Pelanggan').insert({
-        'NamaPelanggan': nama,
-        'Alamat': alamat,
-        'NomorTelepon': telepon,
-      });
-      if (response != null) {
-        fetchPelanggan();
-      } else {
-        _showErrorDialog('Gagal menambahkan pelanggan.');
-      }
-    } catch (e) {
-      print('Error adding pelanggan: $e');
-      _showErrorDialog('Gagal menambahkan pelanggan.');
-    }
-  }
-
-  // Update data pelanggan
-  Future<void> updatePelanggan(
-      int id, String nama, String alamat, String telepon) async {
-    if (nama.isEmpty || alamat.isEmpty || telepon.isEmpty) {
-      _showErrorDialog('Semua field harus diisi!');
-      return;
-    }
-
-    try {
-      final response = await Supabase.instance.client
-          .from('Pelanggan')
-          .update({
-            'NamaPelanggan': nama,
-            'Alamat': alamat,
-            'NomorTelepon': telepon,
-          })
-          .eq('PelangganID', id);
-
-      if (response != null) {
-        fetchPelanggan();
-      } else {
-        _showErrorDialog('Gagal memperbarui pelanggan.');
-      }
-    } catch (e) {
-      print('Error updating pelanggan: $e');
-      _showErrorDialog('Gagal memperbarui pelanggan.');
-    }
-  }
-
-  // Delete data pelanggan dengan konfirmasi
+  // Fungsi untuk menghapus data pelanggan berdasarkan ID
   Future<void> deletePelanggan(int id) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Konfirmasi'),
-          content: const Text('Apakah Anda yakin ingin menghapus pelanggan ini?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Batal'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Hapus'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirm == true) {
-      try {
-        final response = await Supabase.instance.client
-            .from('Pelanggan')
-            .delete()
-            .eq('PelangganID', id);
-
-        if (response != null) {
-          fetchPelanggan();
-        } else {
-          _showErrorDialog('Gagal menghapus pelanggan.');
-        }
-      } catch (e) {
-        print('Error deleting pelanggan: $e');
-        _showErrorDialog('Terjadi kesalahan saat menghapus pelanggan.');
-      }
+    try {
+      await Supabase.instance.client.from('Pelanggan').delete().eq('PelangganID', id);
+      fetchPelanggan(); // Memperbarui data setelah penghapusan
+    } catch (e) {
+      print('Error deleting pelanggan: $e'); // Log error jika ada masalah
     }
-  }
-
-  // Show dialog untuk tambah atau edit pelanggan
-  void showPelangganDialog({Map<String, dynamic>? pelanggan}) {
-    final TextEditingController namaController =
-        TextEditingController(text: pelanggan?['NamaPelanggan']);
-    final TextEditingController alamatController =
-        TextEditingController(text: pelanggan?['Alamat']);
-    final TextEditingController teleponController =
-        TextEditingController(text: pelanggan?['NomorTelepon']);
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(pelanggan == null ? 'Tambah Pelanggan' : 'Edit Pelanggan'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: namaController,
-                decoration: const InputDecoration(labelText: 'Nama Pelanggan'),
-              ),
-              TextField(
-                controller: alamatController,
-                decoration: const InputDecoration(labelText: 'Alamat'),
-              ),
-              TextField(
-                controller: teleponController,
-                decoration: const InputDecoration(labelText: 'Nomor Telepon'),
-                keyboardType: TextInputType.phone,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Batal'),
-            ),
-            TextButton(
-              onPressed: () {
-                if (pelanggan == null) {
-                  addPelanggan(
-                    namaController.text.trim(),
-                    alamatController.text.trim(),
-                    teleponController.text.trim(),
-                  );
-                } else {
-                  updatePelanggan(
-                    pelanggan['PelangganID'],
-                    namaController.text.trim(),
-                    alamatController.text.trim(),
-                    teleponController.text.trim(),
-                  );
-                }
-                Navigator.pop(context);
-              },
-              child: const Text('Simpan'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  // Menampilkan dialog error
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Error'),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Manajemen Pelanggan'),
-      ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : pelanggan.isEmpty
-              ? const Center(
-                  child: Text(
-                    'Tidak ada pelanggan tersedia',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      body: Pelanggan.isEmpty // Jika data kosong
+          ? Center(
+              child: Text(
+                'Tidak ada pelanggan', // Tampilkan teks ini
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            )
+          : GridView.builder( // Menampilkan data dalam bentuk grid
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2, // Jumlah kolom
+                crossAxisSpacing: 12, // Jarak antar kolom
+              ),
+              padding: EdgeInsets.all(8), // Padding keseluruhan
+              itemCount: Pelanggan.length, // Jumlah item
+              itemBuilder: (context, index) {
+                final langgan = Pelanggan[index]; // Data pelanggan per item
+                return Card(
+                  elevation: 4, // Elevasi bayangan kartu
+                  margin: EdgeInsets.symmetric(vertical: 8), // Margin antar kartu
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)), // Radius sudut kartu
+                  child: Padding(
+                    padding: EdgeInsets.all(12), // Padding dalam kartu
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start, // Posisi konten
+                      children: [
+                        // Menampilkan nama pelanggan
+                        Text(
+                          langgan['NamaPelanggan'] ?? 'Pelanggan tidak tersedia',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 20,
+                          ),
+                        ),
+                        SizedBox(height: 4), // Jarak vertikal
+                        // Menampilkan alamat pelanggan
+                        Text(
+                          langgan['Alamat'] ?? 'Alamat Tidak tersedia',
+                          style: TextStyle(
+                            fontStyle: FontStyle.italic, fontSize: 16, color: Colors.grey,
+                          ),
+                        ),
+                        SizedBox(height: 8), // Jarak vertikal
+                        // Menampilkan nomor telepon pelanggan
+                        Text(
+                          langgan['NomorTelepon'] ?? 'Tidak tersedia',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 14,
+                          ),
+                          textAlign: TextAlign.justify,
+                        ),
+                        const Divider(), // Garis pemisah
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end, // Posisi tombol
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.blueAccent),
+                              onPressed: () {
+                                final PelangganID = langgan['PelangganID'] ?? 0; // Pastikan ini sesuai dengan kolom di database
+                                if (PelangganID != 0) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => EditPelanggan(PelangganID: PelangganID)
+                                    ),
+                                  );
+                                } else {
+                                  print('ID pelanggan tidak valid'); // Log jika ID invalid
+                                }
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.redAccent),
+                              onPressed: () {
+                                // Konfirmasi sebelum menghapus
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text('Hapus Pelanggan'),
+                                      content: const Text('Apakah Anda yakin ingin menghapus pelanggan ini?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context),
+                                          child: const Text('Batal'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            deletePelanggan(langgan['PelangganID']); // Panggil fungsi hapus
+                                            Navigator.pop(context); // Tutup dialog
+                                          },
+                                          child: const Text('Hapus'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                )
-              : ListView.builder(
-                  itemCount: pelanggan.length,
-                  itemBuilder: (context, index) {
-                    final data = pelanggan[index];
-                    return Card(
-                      margin: const EdgeInsets.all(8),
-                      child: ListTile(
-                        title: Text(data['NamaPelanggan']),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Alamat: ${data['Alamat']}'),
-                            Text('Telepon: ${data['NomorTelepon']}'),
-                          ],
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.blue),
-                              onPressed: () => showPelangganDialog(
-                                pelanggan: data,
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete,
-                                  color: Colors.redAccent),
-                              onPressed: () =>
-                                  deletePelanggan(data['PelangganID']),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                );
+              },
+            ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => showPelangganDialog(),
-        child: const Icon(Icons.add),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddPelanggan()), // Navigasi ke halaman tambah pelanggan
+          );
+        },
+        child: Icon(Icons.add), // Ikon tombol tambah
       ),
     );
   }

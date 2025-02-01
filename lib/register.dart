@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rennatakasir/homepage.dart';
 import 'package:rennatakasir/login.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -24,9 +25,26 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _role = TextEditingController();
   bool _isLoading = false;
 
   Future<void> _register() async {
+    if(_formKey.currentState!.validate()){
+      final String username = _emailController.text;
+      final String password = _confirmPasswordController.text;
+      final String role = _role.text;
+      final user = await Supabase.instance.client.from('user').insert({
+        'username': username,
+        'password': password,
+        'role': role
+      });
+      if(user == null || user.isEmpty){
+        Navigator.push(context, MaterialPageRoute(builder: (context) => Homepage()));
+      } else {
+         Navigator.push(context, MaterialPageRoute(builder: (context) => Homepage()));
+      }
+    }
+
     if (!_formKey.currentState!.validate()) return;
 
     if (_passwordController.text != _confirmPasswordController.text) {
@@ -104,6 +122,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   return null;
                 },
               ),
+              
               const SizedBox(height: 16),
               TextFormField(
                 controller: _confirmPasswordController,
@@ -112,6 +131,17 @@ class _RegisterPageState extends State<RegisterPage> {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Konfirmasi password tidak boleh kosong';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _role,
+                decoration: const InputDecoration(labelText: 'role'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'tidak boleh kosong';
                   }
                   return null;
                 },

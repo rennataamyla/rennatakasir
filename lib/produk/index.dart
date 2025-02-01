@@ -13,6 +13,11 @@ class ProdukTab extends StatefulWidget {
 }
 
 class _ProdukTabState extends State<ProdukTab> {
+ 
+ int jumlahPesanan = 0;
+  int totalHarga = 0;
+  int stokakhir = 0;
+  int stokawal = 0;
   List<Map<String, dynamic>> produk = [];
   bool isLoading = true;
 
@@ -43,6 +48,18 @@ class _ProdukTabState extends State<ProdukTab> {
       });
     }
   }
+
+  void updateJumlahPesanan(int harga, int delta) {
+    setState(() {
+      stokakhir = stokawal - delta;
+      if (stokakhir < 0) stokakhir = 0; 
+      jumlahPesanan += delta;
+      if (jumlahPesanan < 0) jumlahPesanan = 0; // Tidak boleh negatif
+      totalHarga = jumlahPesanan * harga;
+      if (totalHarga < 0) totalHarga = 0; // Tidak boleh negatif
+    });
+  }
+  
 
   Future<void> deleteProduk(int produkId) async {
     try {
@@ -75,17 +92,11 @@ class _ProdukTabState extends State<ProdukTab> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 )
-              : GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                  ),
+              : ListView.builder(
                   padding: const EdgeInsets.all(8),
                   itemCount: produk.length,
                   itemBuilder: (context, index) {
                     final prd = produk[index];
-
                     return InkWell(
                       onTap: () {
                         Navigator.push(
@@ -206,41 +217,29 @@ class ProdukDetailPage extends StatefulWidget {
 }
 
 class _ProdukDetailPageState extends State<ProdukDetailPage> {
-  int quantity = 1;
+   int jumlahPesanan = 0;
+    int totalHarga = 0;
+    int stokakhir = 0;
+    int stokawal = 0;
 
-  void increaseQuantity() {
+    void updateJumlahPesanan(int harga, int delta) {
     setState(() {
-      quantity++;
+      stokakhir = stokawal - delta;
+      if (stokakhir < 0) stokakhir = 0; 
+      jumlahPesanan += delta;
+      if (jumlahPesanan < 0) jumlahPesanan = 0; // Tidak boleh negatif
+      totalHarga = jumlahPesanan * harga;
+      if (totalHarga < 0) totalHarga = 0; // Tidak boleh negatif
     });
-  }
-
-  void decreaseQuantity() {
-    setState(() {
-      if (quantity > 1) quantity--;
-    });
-  }
-
-  void addToCart() {
-    print('Menambahkan ${quantity} ${widget.produk['NamaProduk']} ke keranjang');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Berhasil menambahkan ke keranjang!')),
-    );
-  }
-
-  void buyNow() {
-    print('Membeli ${quantity} ${widget.produk['NamaProduk']} sekarang');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Proses pembelian dimulai!')),
-    );
   }
   
-Future<void> insertDetailPenjualan(int produk, int Penjualanid, int jumlahPesanan, int totalHarga) async {
+Future<void> insertDetailPenjualan(int ProdukID, int PenjualanID, int jumlahPesanan, int totalHarga) async {
     final supabase = Supabase.instance.client;
 
     try {
       final response = await supabase.from('detailpenjualan').insert({
-        'Produkid': produk,
-        'Penjualanid': Penjualanid,
+        'ProdukID': ProdukID,
+        'PenjualanID': PenjualanID,
         'JumlahProduk': jumlahPesanan,
         'Subtotal': totalHarga,
       });
@@ -260,6 +259,11 @@ Future<void> insertDetailPenjualan(int produk, int Penjualanid, int jumlahPesana
 
   @override
   Widget build(BuildContext context) {
+    final produk = widget.produk;
+    final harga = produk['Harga'] ?? 0;
+    final ProdukID = produk['ProdukID'] ?? 0;
+    final PenjualanID = 1; // Contoh ID Penjualan (harus diganti sesuai logika Anda)
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.produk['NamaProduk'] ?? 'Detail Produk'),
@@ -286,26 +290,32 @@ Future<void> insertDetailPenjualan(int produk, int Penjualanid, int jumlahPesana
             const SizedBox(height: 30),
             Row(
               children: [
-                IconButton(
-                  onPressed: decreaseQuantity,
-                  icon: const Icon(Icons.remove),
-                ),
-                Text(
-                  quantity.toString(),
-                  style: const TextStyle(fontSize: 18),
-                ),
-                IconButton(
-                  onPressed: increaseQuantity,
-                  icon: const Icon(Icons.add),
-                ),
-              ],
+                      IconButton(
+                        onPressed: () {
+                          updateJumlahPesanan(harga, -1);
+                        },
+                        icon: const Icon(Icons.remove),
+                      ),
+                      Text(
+                        '$jumlahPesanan',
+                        style: const TextStyle(fontSize: 20),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          updateJumlahPesanan(harga, 1);
+                        },
+                        icon: const Icon(Icons.add),
+                      ),
+                    ],
             ),
             const SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton.icon(
-                  onPressed: addToCart,
+                  onPressed: (){
+                    Navigator.pop(context);
+                  },
                   icon: const Icon(Icons.add_shopping_cart),
                   label: const Text('Masukkan Keranjang'),
                   style: ElevatedButton.styleFrom(
@@ -313,7 +323,11 @@ Future<void> insertDetailPenjualan(int produk, int Penjualanid, int jumlahPesana
                   ),
                 ),
                 ElevatedButton.icon(
-                  onPressed: buyNow,
+                  onPressed: () async {
+                    if (jumlahPesanan > 0) {
+                      await insertDetailPenjualan(ProdukID, PenjualanID, jumlahPesanan, totalHarga);
+                    }
+                  },
                   icon: const Icon(Icons.shopping_bag),
                   label: const Text('Beli Sekarang'),
                   style: ElevatedButton.styleFrom(

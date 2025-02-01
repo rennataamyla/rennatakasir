@@ -58,11 +58,7 @@ class _PelangganTabState extends State<PelangganTab> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             )
-          : GridView.builder( // Menampilkan data dalam bentuk grid
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, // Jumlah kolom
-                crossAxisSpacing: 12, // Jarak antar kolom
-              ),
+          : ListView.builder( // Menampilkan data dalam bentuk list
               padding: EdgeInsets.all(8), // Padding keseluruhan
               itemCount: Pelanggan.length, // Jumlah item
               itemBuilder: (context, index) {

@@ -1,4 +1,5 @@
- import 'package:flutter/material.dart';
+  import 'package:flutter/material.dart';
+import 'package:rennatakasir/homepage.dart';
   import 'package:supabase_flutter/supabase_flutter.dart';
 
   class AddPenjualan extends StatefulWidget {
@@ -9,28 +10,27 @@
   }
 
   class _AddPenjualanState extends State<AddPenjualan> {
-    final _tglpnj = TextEditingController();
-    final _totalhrg = TextEditingController();
-    final _pelanggan = TextEditingController();
+    final _totalharga = TextEditingController();
+    final _pelangganid = TextEditingController();
     final _formKey = GlobalKey<FormState>();
 
     // Function to insert the pelanggan
-    Future<void> langgan() async {
+    Future<void> jualan() async {
       if (_formKey.currentState!.validate()) {
-        final String TanggalPenjualan= _tglpnj.text;
-        final String TotalHarga = _totalhrg.text;
-        final String PelangganID= _pelanggan.text;
+        final String TotalHarga = _totalharga.text;
+        final String PelangganID = _pelangganid.text;
+        
 
         // Insert pelanggan data
         final response = await Supabase.instance.client.from('Penjualan').insert(
           {
-            'TanggalPenjualan': TanggalPenjualan,
             'TotalHarga': TotalHarga,
-            'Pelanggan': PelangganID,
+            'PelangganID': PelangganID,
+           
           },
         );
 
-        if (response.error == null) {
+        if (response == null) {
           // Navigate to Homepage on success
           Navigator.pushReplacement(
             context,
@@ -38,9 +38,10 @@
           );
         } else {
           // Show error message
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Error: ${response.error!.message}'),
-          ));
+         Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const Homepage()),
+          );
         }
       }
     }
@@ -59,49 +60,36 @@
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 TextFormField(
-                  controller: _tglpnj,
+                  controller: _totalharga,
                   decoration: const InputDecoration(
-                    labelText: 'Tanggal Penjualan',
+                    labelText: 'Total Harga',
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Tanggal tidak boleh kosong';
+                      return 'Nama tidak boleh kosong';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
-                  controller: _totalhrg,
-                  decoration: const InputDecoration(
-                    labelText: 'TotalHarga',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'TotalHarga tidak boleh kosong';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _pelanggan,
+                  controller: _pelangganid,
                   decoration: const InputDecoration(
                     labelText: 'PelangganID',
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'PelangganID tidak boleh kosong';
+                      return 'Alamat tidak boleh kosong';
                     }
                     return null;
                   },
                 ),
+               
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: langgan,
+                  onPressed: jualan,
                   child: const Text('Tambah'),
                 ),
               ],
@@ -112,20 +100,4 @@
     }
   }
 
-  // Dummy Homepage class for navigation
-  class Homepage extends StatelessWidget {
-    const Homepage({super.key});
-
-    @override
-    Widget build(BuildContext context) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Homepage'),
-        ),
-        body: const Center(
-          child: Text('Selamat Datang di Homepage!'),
-        ),
-      );
   
-    }
-  }

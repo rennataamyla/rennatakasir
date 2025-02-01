@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rennatakasir/detailpenjualan.dart';
 import 'package:rennatakasir/produk/index.dart';
 import 'package:rennatakasir/register.dart';
 import 'package:rennatakasir/splash.dart';
@@ -31,7 +32,7 @@ class _HomepageState extends State<Homepage> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.blue,
@@ -99,7 +100,7 @@ class _HomepageState extends State<Homepage> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const PenjualanTab())
+                    MaterialPageRoute(builder: (context) => PenjualanTab())
                     );
                   // Logika navigasi atau aksi lainnya
                 },
@@ -134,7 +135,7 @@ class _HomepageState extends State<Homepage> {
             ProdukTab(),
             PelangganTab(),
             PenjualanTab(),
-            Center(child: Text('1'),)
+            DetailPenjualanTab()
           ],
         ),
       ),

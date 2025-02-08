@@ -308,7 +308,7 @@ Future<void> insertDetailPenjualan(int ProdukID, int PenjualanID, int jumlahPesa
                       ),
                     ],
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 18),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [

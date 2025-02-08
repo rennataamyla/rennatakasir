@@ -83,7 +83,7 @@ class _DetailPenjualanTabState extends State<DetailPenjualanTab> {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
+        children: [ 
           Text(
             label,
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),

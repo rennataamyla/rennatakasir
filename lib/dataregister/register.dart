@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:rennatakasir/dataregister/index.dart';
 import 'package:rennatakasir/homepage.dart';
 import 'package:rennatakasir/login.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+// Fungsi utama aplikasi Flutter
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Supabase.initialize(
+  WidgetsFlutterBinding.ensureInitialized(); // Pastikan binding sudah diinisialisasi sebelum menjalankan kode async
+  await Supabase.initialize( // Inisialisasi Supabase dengan URL dan kunci anon
     url: 'https://njefwoyeuwuyehoksium.supabase.co',
     anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qZWZ3b3lldXd1eWVob2tzaXVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYyOTg3MDgsImV4cCI6MjA1MTg3NDcwOH0.gDqisRACn56V0WSSrRuYkYIbFwneJkUaS3RCCTS-KJw',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
   );
-  runApp(MyApp());
+  runApp(MyApp()); // Menjalankan aplikasi utama
 }
 
+// Kelas StatefulWidget untuk halaman registrasi
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
 
@@ -21,33 +24,38 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-  final TextEditingController _role = TextEditingController();
-  bool _isLoading = false;
+  final _formKey = GlobalKey<FormState>(); // Kunci untuk validasi formulir
+  final TextEditingController _emailController = TextEditingController(); // Controller untuk input email
+  final TextEditingController _passwordController = TextEditingController(); // Controller untuk input password
+  final TextEditingController _confirmPasswordController = TextEditingController(); // Controller untuk konfirmasi password
+  final TextEditingController _role = TextEditingController(); // Controller untuk input role
+  bool _isLoading = false; // Variabel untuk menampilkan indikator loading
 
+  // Fungsi untuk registrasi pengguna
   Future<void> _register() async {
-    if(_formKey.currentState!.validate()){
+    if (_formKey.currentState!.validate()) { // Validasi input form
       final String username = _emailController.text;
       final String password = _confirmPasswordController.text;
       final String role = _role.text;
+
+      // Menyimpan data pengguna ke dalam tabel Supabase (seharusnya tidak menyimpan password secara langsung)
       final user = await Supabase.instance.client.from('user').insert({
         'username': username,
-        'password': password,
+        'password': password, // ⚠️ Harus dienkripsi sebelum disimpan!
         'role': role
       });
-      if(user == null || user.isEmpty){
-        Navigator.push(context, MaterialPageRoute(builder: (context) => Homepage()));
+
+      // Navigasi ke Homepage jika berhasil
+      if (user == null || user.isEmpty) {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterSuccessPage()));
       } else {
-         Navigator.push(context, MaterialPageRoute(builder: (context) => Homepage()));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterSuccessPage()));
       }
     }
 
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) return; // Jika form tidak valid, hentikan proses
 
-    if (_passwordController.text != _confirmPasswordController.text) {
+    if (_passwordController.text != _confirmPasswordController.text) { // Periksa kesesuaian password
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Password dan konfirmasi password tidak cocok')),
       );
@@ -55,30 +63,31 @@ class _RegisterPageState extends State<RegisterPage> {
     }
 
     setState(() {
-      _isLoading = true;
+      _isLoading = true; // Menampilkan indikator loading
     });
 
     try {
+      // Mendaftarkan pengguna menggunakan Supabase Auth
       final response = await Supabase.instance.client.auth.signUp(
         email: _emailController.text,
         password: _passwordController.text,
       );
 
-      if (response.user != null) {
+      if (response.user != null) { // Jika registrasi berhasil
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Registrasi berhasil! Silakan verifikasi email Anda.')),
         );
-        Navigator.pop(context);
+        Navigator.pop(context); // Kembali ke halaman sebelumnya
       } else if (response.user != null) {
-        throw response.user!;
+        throw response.user!; // ⚠️ Logika ini tidak diperlukan, mungkin typo
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        SnackBar(content: Text('Error: $e')), // Menampilkan pesan error jika gagal
       );
     } finally {
       setState(() {
-        _isLoading = false;
+        _isLoading = false; // Sembunyikan indikator loading setelah selesai
       });
     }
   }
@@ -87,7 +96,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Register'),
+        title: const Text('Register'), // Judul halaman
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -102,56 +111,61 @@ class _RegisterPageState extends State<RegisterPage> {
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Email tidak boleh kosong';
+                    return 'Email tidak boleh kosong'; // Validasi input email
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
+
               TextFormField(
                 controller: _passwordController,
                 decoration: const InputDecoration(labelText: 'Password'),
-                obscureText: true,
+                obscureText: true, // Sembunyikan karakter password
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Password tidak boleh kosong';
+                    return 'Password tidak boleh kosong'; // Validasi input password
                   }
                   if (value.length < 6) {
-                    return 'Password harus lebih dari 6 karakter';
+                    return 'Password harus lebih dari 6 karakter'; // Syarat panjang password
                   }
                   return null;
                 },
               ),
               
               const SizedBox(height: 16),
+
               TextFormField(
                 controller: _confirmPasswordController,
                 decoration: const InputDecoration(labelText: 'Konfirmasi Password'),
-                obscureText: true,
+                obscureText: true, // Sembunyikan karakter password
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Konfirmasi password tidak boleh kosong';
+                    return 'Konfirmasi password tidak boleh kosong'; // Validasi konfirmasi password
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
+
               TextFormField(
                 controller: _role,
-                decoration: const InputDecoration(labelText: 'role'),
+                decoration: const InputDecoration(labelText: 'Role'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'tidak boleh kosong';
+                    return 'Role tidak boleh kosong'; // Validasi input role
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 24),
+
+              // Tombol registrasi
               ElevatedButton(
-                onPressed: _isLoading ? null : _register,
+                onPressed: _isLoading ? null : _register, // Matikan tombol jika sedang loading
                 child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Register'),
+                    ? const CircularProgressIndicator(color: Colors.white) // Tampilkan loading indicator
+                    : const Text('Register'), // Tampilkan teks biasa jika tidak loading
               ),
             ],
           ),

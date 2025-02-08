@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:rennatakasir/dataregister/index.dart';
+import 'package:rennatakasir/dataregister/insert.dart';
 import 'package:rennatakasir/detailpenjualan.dart';
 import 'package:rennatakasir/produk/index.dart';
-import 'package:rennatakasir/register.dart';
+import 'package:rennatakasir/dataregister/register.dart';
 import 'package:rennatakasir/splash.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:rennatakasir/pelanggan/index.dart';
@@ -43,6 +45,7 @@ class _HomepageState extends State<Homepage> {
               Tab(icon: Icon(Icons.people), text: 'Pelanggan'),
               Tab(icon: Icon(Icons.shopping_cart), text: 'Penjualan'),
               Tab(icon: Icon(Icons.drafts), text: 'Detai Penjualan'), 
+              Tab(icon: Icon(Icons.dataset_linked), text: 'Data Register'), 
             ],
           ),
         ),
@@ -135,7 +138,8 @@ class _HomepageState extends State<Homepage> {
             ProdukTab(),
             PelangganTab(),
             PenjualanTab(),
-            DetailPenjualanTab()
+            DetailPenjualanTab(),
+            RegisterSuccessPage(),
           ],
         ),
       ),

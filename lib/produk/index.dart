@@ -232,6 +232,31 @@ class _ProdukDetailPageState extends State<ProdukDetailPage> {
       if (totalHarga < 0) totalHarga = 0; // Tidak boleh negatif
     });
   }
+   Future<bool> cekProdukAda(String namaProduk) async {
+    final response = await Supabase.instance.client.from('produk').select().eq('NamaProduk', namaProduk);
+    return response.isNotEmpty;
+  }
+
+  Future<void> tambahProduk(Map<String, dynamic> produkBaru) async {
+    bool sudahAda = await cekProdukAda(produkBaru['NamaProduk']);
+    if (sudahAda) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Produk sudah ada!')),
+      );
+      return;
+    }
+    
+    try {
+      await Supabase.instance.client.from('produk').insert(produkBaru);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Produk berhasil ditambahkan!')),
+      );
+    } catch (e) {
+      print('Error menambahkan produk: $e');
+    }
+  }
+ 
   
 Future<void> insertDetailPenjualan(int ProdukID, int PenjualanID, int jumlahPesanan, int totalHarga) async {
     final supabase = Supabase.instance.client;
